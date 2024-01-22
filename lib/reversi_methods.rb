@@ -12,8 +12,8 @@ module ReversiMethods
     board = Array.new(8) { Array.new(8, BLANK_CELL) }
     board[3][3] = WHITE_STONE # d4
     board[4][4] = WHITE_STONE # e5
-    board[3][4] = BLACK_STONE # d5
-    board[4][3] = BLACK_STONE # e4
+    board[4][3] = BLACK_STONE # d5
+    board[3][4] = BLACK_STONE # e4
     board
   end
 
@@ -47,12 +47,11 @@ module ReversiMethods
 
     # コピーした盤面にて石の配置を試みて、成功すれば反映する
     copied_board = Marshal.load(Marshal.dump(board))
-    copied_board[pos.col][pos.row] = stone_color
+    copied_board[pos.row][pos.col] = stone_color
 
     turn_succeed = false
     Position::DIRECTIONS.each do |direction|
-      next_pos = pos.next_position(direction)
-      turn_succeed = true if turn(copied_board, next_pos, stone_color, direction)
+      turn_succeed = true if turn(copied_board, pos, stone_color, direction, false)
     end
 
     copy_board(board, copied_board) if !dry_run && turn_succeed
@@ -60,12 +59,13 @@ module ReversiMethods
     turn_succeed
   end
 
-  def turn(board, target_pos, attack_stone_color, direction)
-    return false if target_pos.out_of_board?
-    return false if target_pos.stone_color(board) == attack_stone_color
-
+  def turn(board, target_pos, attack_stone_color, direction, avoid_color_check)
     next_pos = target_pos.next_position(direction)
-    if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction)
+    return false if next_pos.out_of_board?
+    return false if next_pos.stone_color(board) == BLANK_CELL
+    return false if !avoid_color_check && next_pos.stone_color(board) == attack_stone_color
+
+    if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction, true)
       board[target_pos.row][target_pos.col] = attack_stone_color
       true
     else
@@ -74,7 +74,9 @@ module ReversiMethods
   end
 
   def finished?(board)
-    !placeable?(board, WHITE_STONE) && !placeable?(board, BLACK_STONE)
+    w_placeable = placeable?(board, WHITE_STONE)
+    b_placeable = placeable?(board, BLACK_STONE)
+    !w_placeable && !b_placeable
   end
 
   def placeable?(board, attack_stone_color)
@@ -86,6 +88,7 @@ module ReversiMethods
         return true if put_stone(board, position.to_cell_ref, attack_stone_color, dry_run: true)
       end
     end
+    return false
   end
 
   def count_stone(board, stone_color)
