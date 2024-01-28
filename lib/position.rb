@@ -35,7 +35,7 @@ class Position
   end
 
   def out_of_board?
-    !(0..7).cover?(row) || !(0..7).cover?(col)
+    !((0..7).cover?(row) && (0..7).cover?(col))
   end
 
   def stone_color(board)

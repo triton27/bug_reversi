@@ -74,9 +74,7 @@ module ReversiMethods
   end
 
   def finished?(board)
-    w_placeable = placeable?(board, WHITE_STONE)
-    b_placeable = placeable?(board, BLACK_STONE)
-    !w_placeable && !b_placeable
+    !placeable?(board, WHITE_STONE) && !placeable?(board, BLACK_STONE)
   end
 
   def placeable?(board, attack_stone_color)
