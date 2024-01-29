@@ -65,7 +65,7 @@ module ReversiMethods
     return false if next_pos.stone_color(board) == BLANK_CELL
 
     # 再帰でturnメソッドが実行された時は、比較対象の石と手番の石の色が同じ色かをチェックしない
-    return false if next_pos.stone_color(board) == attack_stone_color
+    return false if !avoid_color_check && next_pos.stone_color(board) == attack_stone_color
 
     if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction, true)
       board[target_pos.row][target_pos.col] = attack_stone_color
