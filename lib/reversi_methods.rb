@@ -51,7 +51,8 @@ module ReversiMethods
 
     turn_succeed = false
     Position::DIRECTIONS.each do |direction|
-      turn_succeed = true if turn(copied_board, pos, stone_color, direction, false)
+      next_pos = pos.next_position(direction)
+      turn_succeed = true if turn(copied_board, next_pos, stone_color, direction)
     end
 
     copy_board(board, copied_board) if !dry_run && turn_succeed
@@ -59,15 +60,14 @@ module ReversiMethods
     turn_succeed
   end
 
-  def turn(board, target_pos, attack_stone_color, direction, avoid_color_check)
+  def turn(board, target_pos, attack_stone_color, direction)
+    return false if target_pos.out_of_board?
+    return false if target_pos.stone_color(board) == attack_stone_color
+    return false if target_pos.stone_color(board) == BLANK_CELL
+
     next_pos = target_pos.next_position(direction)
-    return false if next_pos.out_of_board?
-    return false if next_pos.stone_color(board) == BLANK_CELL
 
-    # 再帰でturnメソッドが実行された時は、比較対象の石と手番の石の色が同じ色かをチェックしない
-    return false if !avoid_color_check && next_pos.stone_color(board) == attack_stone_color
-
-    if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction, true)
+    if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction)
       board[target_pos.row][target_pos.col] = attack_stone_color
       true
     else
